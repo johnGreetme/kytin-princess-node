@@ -1,0 +1,19 @@
+// Protocol: Physical Hardware Anchoring
+module StingVerification {
+    
+    // Check against the Orin's own hardware root
+    system_variable LOCAL_ORIN_ID = get_sys_hw_serial();
+    
+    logic ExecuteHandshake {
+        send_to_usb("REQ_AUTH:CHALLENGE_88X_" + LOCAL_ORIN_ID);
+        
+        on_response(payload) {
+            if (payload.contains("AUTH_SUCCESS")) {
+                unlock_kytinOS_dashboard();
+                elevate_to_mini_queen();
+            } else {
+                trigger_lockdown();
+            }
+        }
+    }
+}

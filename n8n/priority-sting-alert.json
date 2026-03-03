@@ -1,0 +1,112 @@
+{
+  "name": "Priority Sting Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "priority_sting_alert",
+        "options": {}
+      },
+      "name": "Webhook Node",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const batch = $input.all()[0].json.body;\nreturn {\n  json: {\n    message: `⚠️ KYTIN ALERT: Batch ${batch.batch_id} requires a State-Lock signature. Value: ${batch.value} THINK tokens. Tap Sting to authorize.`\n  }\n};"
+      },
+      "name": "Formatter Node",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.pushover.net/1/messages.json",
+        "method": "POST",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "token",
+              "value": "YOUR_PUSHOVER_APP_TOKEN"
+            },
+            {
+              "name": "user",
+              "value": "YOUR_PUSHOVER_USER_KEY"
+            },
+            {
+              "name": "message",
+              "value": "={{ $json.message }}"
+            }
+          ]
+        }
+      },
+      "name": "Push Node (Pushover)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "minutes"
+      },
+      "name": "Wait Node (Security Timeout)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Node": {
+      "main": [
+        [
+          {
+            "node": "Formatter Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatter Node": {
+      "main": [
+        [
+          {
+            "node": "Push Node (Pushover)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push Node (Pushover)": {
+      "main": [
+        [
+          {
+            "node": "Wait Node (Security Timeout)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "priority-sting-alert"
+}

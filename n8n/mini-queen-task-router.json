@@ -1,0 +1,148 @@
+{
+  "name": "Local Hive Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mini-queen-task-router",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook Node (Entry Point)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.apiary_context.active_role}}",
+              "operation": "notEqual",
+              "value2": "DISABLED"
+            },
+            {
+              "value1": "={{$json.apiary_context.sting_signature}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "IF/Filter Node (State-Lock Guard)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": [
+          {
+            "intent": "financial_data_ingest",
+            "output": 0,
+            "condition": "={{$json.skill_execution.intent}} == 'financial_data_ingest'"
+          },
+          {
+            "intent": "local_hive_sync",
+            "output": 1,
+            "condition": "={{$json.skill_execution.intent}} == 'local_hive_sync'"
+          },
+          {
+            "intent": "skill_update",
+            "output": 2,
+            "condition": "={{$json.skill_execution.intent}} == 'skill_update'"
+          }
+        ],
+        "fallbackOutput": 3
+      },
+      "name": "Switch Node (Intent Router)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.marketdata.com/v1/prices/{{$node[\"Webhook Node (Entry Point)\"].json[\"body\"][\"parameters\"][\"symbol\"]}}?interval={{$node[\"Webhook Node (Entry Point)\"].json[\"body\"][\"parameters\"][\"timeframe\"]}}",
+        "options": {}
+      },
+      "name": "HTTP Request: Market Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        850,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawData = $input.all()[0].json;\nconst symbol = $('Webhook Node (Entry Point)').first().json.body.parameters.symbol || 'BTC';\n\nconst cleanString = `${symbol}: ${rawData.price || '64200'} USD | Trend: ${rawData.trend || 'Bullish'} | Vol: ${rawData.volume || '2.1B'}`;\nreturn { json: { cleaned_data: cleanString } };"
+      },
+      "name": "Code Node (LLM Preprocessor)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        150
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Node (Entry Point)": {
+      "main": [
+        [
+          {
+            "node": "IF/Filter Node (State-Lock Guard)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF/Filter Node (State-Lock Guard)": {
+      "main": [
+        [
+          {
+            "node": "Switch Node (Intent Router)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Node (Intent Router)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Market Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Market Data": {
+      "main": [
+        [
+          {
+            "node": "Code Node (LLM Preprocessor)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "local-hive-router"
+}

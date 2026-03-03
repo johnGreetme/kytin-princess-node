@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  # 1. The Gatekeeper & P2P Stack
+  # This container handles the Sting handshake and Queen discovery.
+  kytin-daemons:
+    build:
+      context: .
+      dockerfile: ./daemon/Dockerfile
+    container_name: kytin_daemons
+    restart: always
+    privileged: True # Required for serial communication with the Sting
+    devices:
+      - "/dev/ttyACM0:/dev/ttyACM0" # Maps the physical T-dongle to the container
+    env_file: .env
+    networks:
+      - kytin_internal
+    depends_on:
+      - n8n
+
+  # 2. n8n Workflow Engine
+  # Manages telemetry from Foragers and routes data to the Queen relay.
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: kytin_n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - WEBHOOK_URL=http://localhost:5678/
+    volumes:
+      - ./n8n/data:/home/node/.n8n
+    networks:
+      - kytin_internal
+
+  # 3. Fenced Ollama (The Skill)
+  # Runs the quantized LLM with strict VRAM limits.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: kytin_ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_FLASH_ATTENTION=1
+    volumes:
+      - ./ollama/models:/root/.ollama
+    networks:
+      - kytin_internal
+
+  # 4. Clawhub Dashboard
+  # The localized kytinOS web interface.
+  clawhub:
+    image: nginx:latest # Placeholder for the kytinOS dashboard frontend
+    container_name: kytin_clawhub
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./kytinOS/www:/usr/share/nginx/html
+    networks:
+      - kytin_internal
+    depends_on:
+      - kytin-daemons
+
+networks:
+  kytin_internal:
+    driver: bridge

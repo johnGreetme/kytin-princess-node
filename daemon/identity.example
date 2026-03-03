@@ -1,0 +1,26 @@
+# Kytin Swarm: Princess Identity Anchor
+# IMPORTANT: Copy this file to '.env' in the daemon/ directory.
+# NEVER commit the .env file — it is blocked by .gitignore.
+
+# The unique CPU serial number of this NVIDIA Jetson AGX Orin
+# Retrieve with: cat /proc/device-tree/serial-number
+ORIN_ANCHOR_ID=INSERT_ORIN_SERIAL_HERE
+
+# The shared cryptographic secret for the State-Locked Protocol
+# This MUST match the HIVE_SECRET hardcoded in the T-dongle S3 firmware
+HIVE_SECRET=INSERT_HIVE_SECRET_HERE
+
+# The serial port where the Lilygo T-dongle S3 (The Sting) is connected
+STING_SERIAL_PORT=/dev/ttyACM0
+
+# The Queen Node's sovereign IP address (hidden from public DNS)
+# This is the RTX 6000 Ada acting as your personal RPC gateway
+QUEEN_RPC_GATEWAY=10.0.0.1
+
+# Comma-separated list of Queen endpoints in the Global Intelligence Network
+# The Princess will iterate through these to find an available relayer
+QUEEN_REGISTRY=10.0.0.1:8888,10.0.0.2:8888
+
+# Bootstrap peer for Kademlia DHT discovery (typically your primary Queen)
+# After first connection, the DHT learns about all other peers automatically
+BOOTSTRAP_PEER_IP=10.0.0.1

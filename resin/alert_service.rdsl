@@ -1,0 +1,28 @@
+// Kytin Protocol: Priority Notification Logic
+module AlertService {
+    
+    threshold HIGH_VALUE = 500.00; // Example currency/token limit
+    notification_target: "ADMIN_DEVICE_ID_001";
+
+    logic EvaluateBatch {
+        on_batch_complete(batch) {
+            if (batch.value >= HIGH_VALUE) {
+                set_priority(P1);
+                lock_execution(); // Pause until Sting is verified
+                trigger_external_alert(batch);
+            } else {
+                set_priority(P3);
+                execute_auto_sign();
+            }
+        }
+    }
+
+    action trigger_external_alert(batch) {
+        // Send webhook to n8n notification worker
+        call_n8n_webhook("priority_sting_alert", {
+            "batch_id": batch.id,
+            "value": batch.value,
+            "reason": "Threshold Exceeded - Manual State-Lock Required"
+        });
+    }
+}

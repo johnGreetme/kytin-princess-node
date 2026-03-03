@@ -1,0 +1,56 @@
+// Module: Kytin Swarm Relay & Nectar Incentive
+// Role: Princess (Orin) -> Queen (RTX 6000 Ada) Relay
+// Security: State-Locked Protocol (Blind Courier Mode)
+
+module SwarmRelay {
+    
+    // Define the Nectar Bounty (Incentive for the Queen)
+    define NECTAR_BOUNTY = 0.0005 SOL; // Example micro-toll for broadcast
+    
+    // Status Gates
+    state IDLE;
+    state BROADCASTING_REQUEST;
+    state WAITING_FOR_QUEEN;
+    state RELAY_SUCCESS;
+
+    logic ExecuteSovereignRelay {
+        
+        // Step 1: Detect Physical Sting Signature
+        on_event(TRANSACTION_INITIATED) {
+            if (STING_STATUS != "LOCKED") {
+                proceed_to_encapsulation();
+            } else {
+                abort("PHYSICAL_STING_REQUIRED");
+            }
+        }
+
+        // Step 2: Encapsulate and Attach Nectar
+        action proceed_to_encapsulation {
+            // Build the State-Locked Packet
+            // This is 'Blind' - the Queen cannot see the raw logic, only the signed hex
+            var packet = encapsulate({
+                payload: LOCAL_SIGNED_TX,
+                anchor: ORIN_ANCHOR_ID,
+                bounty: NECTAR_BOUNTY,
+                ttl: 60s // Packet expires if not picked up
+            });
+
+            broadcast_to_network(packet, TARGET_ROLE="QUEEN");
+            set_state(BROADCASTING_REQUEST);
+        }
+
+        // Step 3: Queen Acceptance & Relay
+        on_response(QUEEN_ACCEPTANCE) {
+            verify_queen_reputation(QUEEN_ID);
+            set_state(WAITING_FOR_QUEEN);
+        }
+
+        // Step 4: Final Confirmation
+        on_event(MAINNET_CONFIRMATION) {
+            // The blockchain confirms the TX; the Nectar Bounty is released to the Queen
+            release_nectar_to(QUEEN_ID);
+            notify_clawhub("Broadcast Successful: Queen " + QUEEN_ID + " rewarded.");
+            set_state(RELAY_SUCCESS);
+        }
+    }
+}

@@ -1,0 +1,29 @@
+// Kytin Swarm: State-Locked Protocol
+// Guardrail: Dual-Factor Physicality (DFP) via Lilygo T-dongle S3
+
+module StateLock {
+    // Define the hardware anchor based on the Orin Serial
+    anchor OrinIdentity {
+        require env("ORIN_CPU_SERIAL");
+    }
+
+    // Expected structure of the payload from the Sting Gatekeeper
+    struct StingPayload {
+        string token;
+        string signature;
+        timestamp time;
+    }
+
+    // Logic for validating the physical handshake
+    rule ValidateHandshake(payload: StingPayload) {
+        // Ensure the payload is signed by the physical key bonded to the hardware anchor
+        verify_signature(payload.token, payload.signature, OrinIdentity);
+        
+        // Emit AUTH_SUCCESS only if physical presence and hardware bonding are verified
+        emit AUTH_SUCCESS {
+            status: "VERIFIED",
+            node: "Princess",
+            timestamp: now()
+        };
+    }
+}

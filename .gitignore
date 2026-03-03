@@ -1,0 +1,31 @@
+# --- Kytin Swarm Security ---
+# Never commit the secret keys or hardware serials
+.env
+*.secret
+secrets.py
+/daemon/keys/
+
+# --- NVIDIA & Hardware Artifacts ---
+# Local hardware logs can contain unique serials/MAC addresses
+*.log
+/daemon/logs/
+hardware_anchor.txt
+
+# --- Ollama & AI Models ---
+# Do not commit massive binary model files
+/ollama/models/
+*.bin
+*.gguf
+
+# --- Python & Environment ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# --- kytinOS / Clawhub ---
+# Ignore local dashboard session data
+/kytinOS/sessions/
+.DS_Store

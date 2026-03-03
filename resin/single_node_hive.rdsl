@@ -1,0 +1,20 @@
+module SingleNodeHive {
+    role: MINI_QUEEN;
+    anchor: PHYSICAL_STING_S3;
+
+    // The Orin acts as its own data source
+    sensor LOCAL_TELEMETRY {
+        type: SYSTEM_METRICS;
+        poll: 5s;
+    }
+
+    logic SelfGovernance {
+        on_data(LOCAL_TELEMETRY) {
+            analyze_with_ollama(THE_SKILL_GENESIS);
+            if (logic_confirmed && sting_present) {
+                execute_state_locked_trade();
+                update_clawhub_dashboard();
+            }
+        }
+    }
+}

@@ -1,0 +1,14 @@
+// Kytin Resource Guardrail
+module ResourceMonitor {
+    
+    threshold VRAM_CRITICAL = 85%; // Percentage of total Unified Memory
+
+    logic CheckStability {
+        on_event(PRE_INFERENCE) {
+            if (get_mem_usage() > VRAM_CRITICAL) {
+                notify_clawhub("Resource Warning: VRAM Critical. Scaling back reasoning.");
+                set_inference_mode(LITE); // Switch to a smaller model or skip reasoning
+            }
+        }
+    }
+}
