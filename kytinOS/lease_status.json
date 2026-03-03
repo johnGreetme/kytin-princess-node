@@ -1,0 +1,16 @@
+{
+  "component": "LeaseStatus",
+  "props": {
+    "title": "Lease Status",
+    "fields": [
+      { "label": "Status", "value": "ACTIVE", "color": "green" },
+      { "label": "Connected to", "value": "Queen-01" },
+      { "label": "Nectar Balance", "value": "42.5 $RSN" },
+      { "label": "Relay Cost", "value": "0.0005 $RSN / tx" },
+      { "label": "Sovereignty Mode", "value": "Shared Apiary" },
+      { "label": "Autopilot", "value": "ENGAGED", "color": "cyan" },
+      { "label": "Burn Rate", "value": "0.05 $RSN / Day" },
+      { "label": "Estimated Autonomy", "value": "248 Days" }
+    ]
+  }
+}

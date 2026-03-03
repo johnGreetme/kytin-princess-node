@@ -11,6 +11,9 @@ This repository contains the software stack for the Princess node (NVIDIA Jetson
 | **The Forager**  | NVIDIA Jetson AGX Thor | High-throughput telemetry gathering and environmental data ingestion.          |
 | **The Sting**    | Lilygo T-dongle S3     | The physical hardware root of trust and State-Locked Protocol anchor.          |
 
+**Sovereign Service: Automated Lease Distribution**
+The Queen node acts as a Service Provider. Princess nodes must enter an **Apiary Lease Protocol (ALP)** agreement, paying a "Nectar Tax" ($RSN$) to access the Queen's sovereign gateway. Details can be found in the [ARCHITECTURE_DOSSIER.md](file:///Users/dieudonne/Documents/kytin-princess-node/ARCHITECTURE_DOSSIER.md).
+
 ## 🏗️ Repository Structure
 
 ```plaintext
